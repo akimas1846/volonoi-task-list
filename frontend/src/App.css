@@ -1,0 +1,169 @@
+/* 既存のCSSに追加 */
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* トグルスイッチのスタイル */
+.toggle-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #4a5568;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: relative;
+  width: 40px;
+  height: 20px;
+  background-color: #cbd5e0;
+  border-radius: 20px;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #48bb78;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.toggle-label {
+  font-weight: 500;
+}
+
+.custom-tooltip {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  background: white;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  border: 1px solid #eee;
+  z-index: 1000;
+}
+
+
+.side-panel {
+  position: absolute;
+  right: 0; top: 0;
+  width: 350px;
+  height: 100%;
+  background: white;
+  box-shadow: -4px 0 15px rgba(0,0,0,0.1);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+}
+
+.panel-header {
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid #eee; padding-bottom: 10px;
+}
+
+.close-btn { font-size: 24px; border: none; background: none; cursor: pointer; }
+
+.input-group { margin: 20px 0; }
+.input-group label { display: block; font-weight: bold; margin-bottom: 8px; }
+.input-group input[type="text"], select { width: 100%; padding: 8px; }
+
+.action-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 30px; }
+.save-btn { background: #28a745; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; }
+.toggle-btn { background: #6c757d; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; }
+.delete-btn { background: #dc3545; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; }
+
+/* =========================================
+   保存ボタンの無効化（グレーアウト）とツールチップ
+   ========================================= */
+
+.tooltip-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ラッパーが is-disabled の時、カーソルを進入禁止マークにする */
+.tooltip-wrapper.is-disabled {
+  cursor: not-allowed;
+}
+
+/* 内部のボタン自体はイベントを受け付けなくし、色をグレーに */
+.tooltip-wrapper.is-disabled .save-btn {
+  pointer-events: none;
+  background-color: #cbd5e0;
+  color: #a0aec0;
+  transform: none; /* 押した時の凹みアニメーションも無効化 */
+}
+
+/* ホバー時に吹き出し（ツールチップ）を表示 */
+.tooltip-wrapper.is-disabled:hover::after {
+  content: attr(data-error); /* HTMLの data-error 属性の文字を取得 */
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  background-color: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1000;
+  
+  /* ふんわり表示させるアニメーション */
+  opacity: 0;
+  animation: fadeInTooltip 0.2s forwards;
+}
+
+/* 吹き出しの三角形（しっぽ） */
+.tooltip-wrapper.is-disabled:hover::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 2px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
+  pointer-events: none;
+  z-index: 1000;
+  
+  opacity: 0;
+  animation: fadeInTooltip 0.2s forwards;
+}
+
+@keyframes fadeInTooltip {
+  to {
+    opacity: 1;
+  }
+}

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>バックエンド動作確認テスト</title>
+    <style>
+        body { font-family: sans-serif; margin: 30px; background-color: #f4f7f6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .task-card { border-left: 5px solid #ccc; padding: 12px; margin: 10px 0; background: #fafafa; border-radius: 0 4px 4px 0; }
+        .form-group { margin-bottom: 12px; }
+        label { display: inline-block; width: 100px; font-weight: bold; }
+        input, select { padding: 6px; width: 200px; }
+        button { padding: 8px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .badge { color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold; }
+        .error-msg { color: red; font-size: 0.9em; margin-top: 5px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>タスク管理API 動作確認</h1>
+        <p>※現在はユーザーID: 1（山田太郎）として自動テストしています。</p>
+        <hr>
+        <h2>① タスクの新規追加</h2>
+        <div class="form-group">
+            <label for="taskName">タスク名:</label>
+            <input type="text" id="taskName" value="新規テストタスク">
+        </div>
+        <div class="form-group">
+            <label for="importance">重要度(1-10):</label>
+            <input type="number" id="importance" value="5">
+        </div>
+        <div class="form-group">
+            <label for="categoryId">タスク区分:</label>
+            <select id="categoryId">
+                <option value="1">1: 工作 (赤系)</option>
+                <option value="2">2: プライベート (緑系)</option>
+                <option value="3">3: スキル学習 (青系)</option>
+            </select>
+        </div>
+        <button onclick="addTask()">DBにタスクを追加する</button>
+        <div id="validationError" class="error-msg"></div>
+
+        <hr>
+        <h2>② 現在のタスク一覧</h2>
+        <button onclick="fetchTasks()" style="background-color: #28a745;">データを再取得</button>
+        <div id="taskList" style="margin-top: 15px;"></div>
+    </div>
+
+    <script>
+        window.onload = fetchTasks;
+
+        function fetchTasks() {
+            fetch('/api/tasks')
+                .then(response => response.json())
+                .then(tasks => {
+                    const listDiv = document.getElementById('taskList');
+                    listDiv.innerHTML = '';
+                    tasks.forEach(task => {
+                        const card = document.createElement('div');
+                        card.className = 'task-card';
+                        const categoryName = task.category ? task.category.name : 'なし';
+                        const categoryColor = task.category ? task.category.color : '#999';
+                        card.style.borderLeftColor = categoryColor;
+                        card.innerHTML = `
+                            <h3 style="margin: 0 0 8px 0;">${task.name}</h3>
+                            <div>重要度（ボロノイの面積の重み）: <strong>${task.importance}</strong></div>
+                            <div style="margin-top: 5px;">
+                                区分: <span class="badge" style="background-color: ${categoryColor};">${categoryName}</span>
+                                状態: ${task.isCompleted ? '✅完了' : '⏳未完了'}
+                            </div>
+                        `;
+                        listDiv.appendChild(card);
+                    });
+                }).catch(err => console.error(err));
+        }
+
+        function addTask() {
+            const name = document.getElementById('taskName').value;
+            const importanceInput = document.getElementById('importance').value;
+            const importance = importanceInput === "" ? null : parseInt(importanceInput);
+            const categoryId = parseInt(document.getElementById('categoryId').value);
+            const errDiv = document.getElementById('validationError');
+            errDiv.style.display = 'none';
+
+            const payload = {
+                userId: 1,
+                name: name,
+                importance: importance,
+                isCompleted: false,
+                category: { id: categoryId }
+            };
+
+            fetch('/api/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(async response => {
+                if (!response.ok) {
+                    // バリデーションエラーが起きた場合、Spring Bootから400エラーと詳細が返る
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "バリデーションエラーが発生しました");
+                }
+                return response.json();
+            })
+            .then(() => {
+                alert('DBへの追加に成功しました！');
+                fetchTasks();
+            })
+            .catch(error => {
+                errDiv.innerText = error.message;
+                errDiv.style.display = 'block';
+            });
+        }
+    </script>
+</body>
+</html>
